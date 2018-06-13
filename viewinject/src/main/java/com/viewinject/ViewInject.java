@@ -2,10 +2,14 @@ package com.viewinject;
 
 import android.app.Activity;
 import android.app.Fragment;
+import android.text.Layout;
 import android.text.TextUtils;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.View;
+import android.view.ViewGroup;
 
+import com.blankj.utilcode.util.LogUtils;
 import com.viewinject.annotation.BindContentView;
 import com.viewinject.annotation.BindOnClick;
 import com.viewinject.annotation.BindView;
@@ -15,6 +19,7 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.lang.reflect.Proxy;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -35,62 +40,73 @@ public class ViewInject {
     }
 
     private static ViewInject INSTANCE;
+    private static final Object lock = new Object();
 
     public static ViewInject getInstance() {
         if (INSTANCE == null) {
-            INSTANCE = new ViewInject();
+            synchronized (lock) {
+                if (INSTANCE == null) {
+                    INSTANCE = new ViewInject();
+                }
+            }
         }
         return INSTANCE;
     }
 
-    public void inject(Activity target) {
-        Class<?> cls = target.getClass();
-        BindContentView contentView = findContentView(cls);
+    /**
+     * 绑定contentVIew
+     *
+     * @param activity
+     */
+    public void inject(Activity activity) {
+        Class<?> activityClass = activity.getClass();
+        if (activityClass == null || IGNORED.contains(activityClass)) {
+            return;
+        }
+        BindContentView contentView = findContentView(activityClass);
         try {
             //获取注解中的值
             if (contentView != null) {
                 int layoutId = contentView.value();
                 //获取方法
                 if (layoutId > 0) {
-                    Method setContentView = cls.getMethod("setContentView", int.class);
-                    setContentView.invoke(target, layoutId);
+                    Method setContentView = activityClass.getMethod("setContentView", int.class);
+                    setContentView.invoke(activity, layoutId);
                 }
             }
-        } catch (NoSuchMethodException e) {
-            e.printStackTrace();
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
-        } catch (InvocationTargetException e) {
-            e.printStackTrace();
+        } catch (Throwable ignored) {
+            LogUtils.e(ignored.fillInStackTrace());
         }
-        View view = target.getWindow().getDecorView();
-        inject(view, target);
+        injectObject(activity, activityClass, new ViewHelper(activity));
     }
 
-    public void inject(View rootview, Fragment target) {
-        Class<?> cls = target.getClass();
-    }
-
-    public void inject(View rootview, Object target) {
-        Class<?> cls = target.getClass();
+    /**
+     * fragment中绑定contentVIew
+     *
+     * @param fragment
+     * @param inflater
+     * @param container
+     */
+    public void inject(Object fragment, LayoutInflater inflater, ViewGroup container) {
+        Class<?> fragmentClass = fragment.getClass();
+        if (fragmentClass == null || IGNORED.contains(fragmentClass)) {
+            return;
+        }
+        BindContentView contentView = findContentView(fragmentClass);
+        View view = null;
         try {
-            Field[] fields = cls.getDeclaredFields();
-            for (Field field : fields) {
-                BindView bindView = field.getAnnotation(BindView.class);
-                if (bindView != null) {
-                    int resId = bindView.value();
-                    if (resId > 0) {
-                        View view = rootview.findViewById(resId);
-                        field.setAccessible(true);
-                        field.set(target, view);
-                        field.setAccessible(false);
-                    }
+            //获取注解中的值
+            if (contentView != null) {
+                int layoutId = contentView.value();
+                //获取方法
+                if (layoutId > 0) {
+                    view = inflater.inflate(layoutId, container, false);
                 }
             }
-        } catch (IllegalAccessException e) {
-            e.printStackTrace();
+        } catch (Throwable ignored) {
+            LogUtils.e(ignored.fillInStackTrace());
         }
-        injectEevent(rootview, target);
+        injectObject(fragment, fragmentClass, new ViewHelper(view));
     }
 
     /**
@@ -98,37 +114,75 @@ public class ViewInject {
      *
      * @param target
      */
-    public void injectEevent(View rootview, Object target) {
-        Class<?> cls = target.getClass();
-        Method[] methods = cls.getDeclaredMethods();
-        for (Method method : methods) {
-            BindOnClick onClick = method.getAnnotation(BindOnClick.class);
-            if (onClick != null) {
-                try {
-                    int[] resIds = onClick.value();//获取目标控件的id
-                    Class<?> methodType = onClick.type();//获取点击事件的类型
-                    String methodName = onClick.method();//点击事件的方法名
-                    for (int resId : resIds) {
-                        View view = rootview.findViewById(resId);
-                        DynamicHandler dynamicHandler = new DynamicHandler(view);
-                        Method setEventLintener = view.getClass().getMethod(methodName, methodType);
-                        setEventLintener.setAccessible(true);
-                        dynamicHandler.addMethod(method.getName(),method);
-                        Object lintener = Proxy.newProxyInstance(
-                                methodType.getClassLoader(),
-                                new Class<?>[]{methodType},dynamicHandler);
-                        setEventLintener.invoke(view, lintener);
+    public static void injectObject(Object target, Class<?> targetCls, ViewHelper helper) {
+        //从父类轮询注解数据
+        Log.e("aaaa", targetCls.getSuperclass().getName());
+        if (targetCls == null || IGNORED.contains(targetCls)) {
+            return;
+        }
+        injectObject(target, targetCls.getSuperclass(), helper);
+        try {
+            Field[] fields = targetCls.getDeclaredFields();
+            if (fields != null || fields.length > 0) {
+                for (Field field : fields) {
+                    Class<?> fieldType = field.getType();
+                    if (
+                            /* 不注入静态字段 */
+                            Modifier.isStatic(field.getModifiers()) ||
+                            /* 不注入final字段 */
+                                    Modifier.isFinal(field.getModifiers()) ||
+                            /* 不注入基本类型字段 */
+                                    fieldType.isPrimitive() ||
+                            /* 不注入数组类型字段 */
+                                    fieldType.isArray()) {
+                        continue;
                     }
-                } catch (IllegalAccessException e) {
-                    e.printStackTrace();
-                } catch (InvocationTargetException e) {
-                    e.printStackTrace();
-                } catch (NoSuchMethodException e) {
-                    e.printStackTrace();
+                    BindView bindView = field.getAnnotation(BindView.class);
+                    if (bindView != null) {
+                        int resId = bindView.value();
+                        if (resId > 0) {
+                            View view = helper.findViewById(resId);
+                            if (view != null) {
+                                field.setAccessible(true);
+                                field.set(target, view);
+                                field.setAccessible(false);
+                            } else {
+                                throw new RuntimeException("Invalid @BindView for "
+                                        + targetCls.getSimpleName() + "." + field.getName());
+                            }
+                        }
+                    }
+                }
+            }
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        }
+        Method[] methods = targetCls.getDeclaredMethods();
+        if (methods != null || methods.length > 0) {
+            for (Method method : methods) {
+                BindOnClick onClick = method.getAnnotation(BindOnClick.class);
+                if (onClick != null) {
+                    try {
+                        int[] resIds = onClick.value();//获取目标控件的id
+
+                        method.setAccessible(true);
+                        for (int resId : resIds) {
+                            if (resId > 0) {
+                                View view = helper.findViewById(resId);
+                                EventManager.addEventMethod(view, onClick, target, method);
+                            } else {
+                                throw new Exception("BindEevent Error：resId is wrong! ");
+                            }
+                        }
+                        method.setAccessible(false);
+                    } catch (Throwable ex) {
+                        LogUtils.e(ex.getMessage());
+                    }
                 }
             }
         }
     }
+
 
     /**
      * 获取contentView注解
@@ -150,68 +204,4 @@ public class ViewInject {
         }
     }
 
-    public static class DynamicHandler implements InvocationHandler {
-        // 存放代理对象，比如Fragment或view holder
-        private WeakReference<Object> handlerRef;
-        // 存放代理方法
-        private final HashMap<String, Method> methodMap = new HashMap<String, Method>(1);
-
-        private static long lastClickTime = 0;
-
-        public DynamicHandler(Object handler) {
-            this.handlerRef = new WeakReference<Object>(handler);
-        }
-
-        public void addMethod(String name, Method method) {
-            methodMap.put(name, method);
-        }
-
-        public Object getHandler() {
-            return handlerRef.get();
-        }
-
-        @Override
-        public Object invoke(Object proxy, Method method, Object[] args) throws Throwable {
-            Object handler = handlerRef.get();
-            if (handler != null) {
-
-                String eventMethod = method.getName();
-                if ("toString".equals(eventMethod)) {
-                    return DynamicHandler.class.getSimpleName();
-                }
-
-                method = methodMap.get(eventMethod);
-                if (method == null && methodMap.size() == 1) {
-                    for (Map.Entry<String, Method> entry : methodMap.entrySet()) {
-                        if (TextUtils.isEmpty(entry.getKey())) {
-                            method = entry.getValue();
-                        }
-                        break;
-                    }
-                }
-
-                if (method != null) {
-
-//                    if (AVOID_QUICK_EVENT_SET.contains(eventMethod)) {
-//                        long timeSpan = System.currentTimeMillis() - lastClickTime;
-//                        if (timeSpan < QUICK_EVENT_TIME_SPAN) {
-//                            Log.w("aaaaa","onClick cancelled: " + timeSpan);
-//                            return null;
-//                        }
-//                        lastClickTime = System.currentTimeMillis();
-//                    }
-
-                    try {
-                        return method.invoke(handler, args);
-                    } catch (Throwable ex) {
-                        throw new RuntimeException("invoke method error:" +
-                                handler.getClass().getName() + "#" + method.getName(), ex);
-                    }
-                } else {
-                    Log.e("aaaaa","method not impl: " + eventMethod + "(" + handler.getClass().getSimpleName() + ")");
-                }
-            }
-            return null;
-        }
-    }
 }

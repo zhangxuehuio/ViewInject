@@ -1,7 +1,10 @@
 package com.viewinjectdemo;
 
+import android.app.Dialog;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,9 +23,9 @@ public class MainActivity extends BaseActivity {
         tv.setText("绑定成功");
     }
 
-    @BindOnClick(R.id.tv)
-    void onClick() {
-        Log.e("aaaa", "aaaaa");
+    @BindOnClick(value = R.id.tv, method = "onClick")
+    void onClick(View view) {
+        Log.e(" invoke aaaa", "aaaaa");
         Toast.makeText(getApplicationContext(), "aaaaaa", Toast.LENGTH_LONG).show();
     }
 }
