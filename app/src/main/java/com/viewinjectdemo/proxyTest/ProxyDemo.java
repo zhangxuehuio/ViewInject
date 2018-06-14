@@ -1,4 +1,4 @@
-package com.viewinject.proxyTest;
+package com.viewinjectdemo.proxyTest;
 
 import com.viewinject.EventProxyHandler;
 

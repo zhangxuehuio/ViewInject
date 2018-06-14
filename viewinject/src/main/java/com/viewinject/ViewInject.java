@@ -1,29 +1,19 @@
 package com.viewinject;
 
 import android.app.Activity;
-import android.app.Fragment;
-import android.text.Layout;
-import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.blankj.utilcode.util.LogUtils;
 import com.viewinject.annotation.BindContentView;
-import com.viewinject.annotation.BindOnClick;
+import com.viewinject.annotation.BindEvent;
 import com.viewinject.annotation.BindView;
+import com.viewinject.utils.LogUtils;
 
-import java.lang.ref.WeakReference;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
-import java.lang.reflect.Proxy;
-import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map;
 
 public class ViewInject {
     public static final HashSet<Class<?>> IGNORED = new HashSet<>();
@@ -75,7 +65,7 @@ public class ViewInject {
                 }
             }
         } catch (Throwable ignored) {
-            LogUtils.e(ignored.fillInStackTrace());
+            LogUtils.e(activity, ignored.getLocalizedMessage() + "");
         }
         injectObject(activity, activityClass, new ViewHelper(activity));
     }
@@ -104,7 +94,7 @@ public class ViewInject {
                 }
             }
         } catch (Throwable ignored) {
-            LogUtils.e(ignored.fillInStackTrace());
+            LogUtils.e(fragment, ignored.getLocalizedMessage() + "");
         }
         injectObject(fragment, fragmentClass, new ViewHelper(view));
     }
@@ -116,7 +106,8 @@ public class ViewInject {
      */
     public static void injectObject(Object target, Class<?> targetCls, ViewHelper helper) {
         //从父类轮询注解数据
-        Log.e("aaaa", targetCls.getSuperclass().getName());
+        LogUtils.e(target, targetCls.getSuperclass().getName());
+
         if (targetCls == null || IGNORED.contains(targetCls)) {
             return;
         }
@@ -160,11 +151,10 @@ public class ViewInject {
         Method[] methods = targetCls.getDeclaredMethods();
         if (methods != null || methods.length > 0) {
             for (Method method : methods) {
-                BindOnClick onClick = method.getAnnotation(BindOnClick.class);
+                BindEvent onClick = method.getAnnotation(BindEvent.class);
                 if (onClick != null) {
                     try {
                         int[] resIds = onClick.value();//获取目标控件的id
-
                         method.setAccessible(true);
                         for (int resId : resIds) {
                             if (resId > 0) {
@@ -176,7 +166,7 @@ public class ViewInject {
                         }
                         method.setAccessible(false);
                     } catch (Throwable ex) {
-                        LogUtils.e(ex.getMessage());
+                        LogUtils.e("ta", ex.getLocalizedMessage() + "");
                     }
                 }
             }

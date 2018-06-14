@@ -1,7 +1,8 @@
 package com.viewinject;
 
 import android.text.TextUtils;
-import android.util.Log;
+
+import com.viewinject.utils.LogUtils;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
@@ -75,7 +76,7 @@ public class EventProxyHandler implements InvocationHandler {
                             handler.getClass().getName() + "#" + method.getName(), ex);
                 }
             } else {
-                Log.w("EventProxyHandler", "method not impl: " + eventMethod + "(" + handler.getClass().getSimpleName() + ")");
+                LogUtils.e(this, "method not impl: " + eventMethod + "(" + handler.getClass().getSimpleName() + ")");
             }
         }
         return null;

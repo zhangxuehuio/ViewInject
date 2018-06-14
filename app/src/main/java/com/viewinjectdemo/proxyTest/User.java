@@ -1,4 +1,4 @@
-package com.viewinject.proxyTest;
+package com.viewinjectdemo.proxyTest;
 
 /**
  * Created by zhangxuehui on 2018/6/13.

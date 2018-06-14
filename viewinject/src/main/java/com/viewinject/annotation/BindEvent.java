@@ -22,11 +22,11 @@ public @interface BindEvent {
     @IdRes int[] value();
 
     /**
-     * 时间发生时，回调的方法名称
+     * 设置监听事件的方法名称
      *
      * @return
      */
-    String name() default "onEvent";
+    String setMethod() default "setOnClickListener";
 
     /**
      * 设置事件的类型
@@ -34,4 +34,10 @@ public @interface BindEvent {
      * @return
      */
     Class<?> type() default View.OnClickListener.class;
+    /**
+     * 回调的方法名称
+     *
+     * @return
+     */
+    String method() default "onClick";
 }
