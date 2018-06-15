@@ -27,12 +27,13 @@ public class MainActivity extends BaseActivity {
     private TextView tvEventTitle;
     @BindView(R.id.btn_bind_click)
     private Button btnBindClick;
-    @BindView(R.id.btn_bind_item_click)
-    private Button btnBindItemClick;
+
     @BindView(R.id.btn_bind_long_click)
     private Button btnBindLongClick;
     @BindView(R.id.btn_bind_touch)
     private TextView btnBindTouch;
+    @BindView(R.id.btn_bind_item_click)
+    private Button btnBindItemClick;
     @BindView(R.id.btn_bind_layout_change)
     private TextView btnBindLayoutChange;
     @BindView(R.id.btn_bind_text_watcher)

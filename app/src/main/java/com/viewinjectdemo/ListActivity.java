@@ -24,22 +24,23 @@ public class ListActivity extends BaseActivity {
     @Override
     public void bindUI() {
         List<String> list = new ArrayList<>();
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
-        list.add("数据：");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
+        list.add("数据：你点击了");
         lvContent.setAdapter(new ListAdapter(list, R.layout.item_name));
     }
 
     @BindEvent(value = R.id.lv_content, eventType = EventType.CLICK_ITEM)
     void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-        ToastUtils.showShort(parent.getAdapter().getItem(position).toString());
+        ToastUtils.showShort(parent.getAdapter().getItem(position).toString() + position + "项");
     }
 }

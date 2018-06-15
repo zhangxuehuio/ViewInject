@@ -54,13 +54,15 @@ public class ListAdapter extends BaseAdapter {
         } else {
             holder = (ViewHolder) convertView.getTag();
         }
-        holder.setName("绑定ViewHolder ====> " + position);
+        holder.setName("绑定ViewHolder");
+        holder.setPos(position + "");
         return convertView;
     }
-
     private class ViewHolder {
         @BindView(R.id.tv_name)
         private TextView tvName;
+        @BindView(R.id.tv_pos)
+        private TextView tvPos;
 
         public ViewHolder(View view) {
             ViewInject.getInstance().inject(ViewHolder.this, view);
@@ -68,6 +70,10 @@ public class ListAdapter extends BaseAdapter {
 
         public void setName(String msg) {
             tvName.setText(msg);
+        }
+
+        public void setPos(String pos) {
+            tvPos.setText(pos);
         }
 
         @BindEvent(value = R.id.tv_name)

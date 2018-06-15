@@ -2,9 +2,10 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
     <TextView
         android:id="@+id/tv_name"
-        android:layout_width="match_parent"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:paddingBottom="15dp"
         android:paddingLeft="15dp"
@@ -12,4 +13,17 @@
         android:text="fragment绑定事件失败"
         android:textColor="#000"
         android:textSize="16dp" />
+
+    <TextView
+        android:id="@+id/tv_pos"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_toRightOf="@+id/tv_name"
+        android:paddingBottom="15dp"
+        android:paddingRight="15dp"
+        android:paddingTop="15dp"
+        android:gravity="right"
+        android:textColor="#000"
+        android:textSize="16dp" />
+
 </RelativeLayout>
