@@ -1,0 +1,19 @@
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="#fff"
+    tools:context="com.viewinjectdemo.BindFragment">
+
+    <TextView
+        android:id="@+id/tv_bind"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:paddingBottom="5dp"
+        android:gravity="center"
+        android:paddingTop="15dp"
+        android:text="fragment绑定事件失败"
+        android:textColor="#000"
+        android:textSize="16dp" />
+
+</FrameLayout>

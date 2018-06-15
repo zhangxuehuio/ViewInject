@@ -3,10 +3,14 @@ package com.viewinject.annotation;
 import android.support.annotation.IdRes;
 import android.view.View;
 
+import com.viewinject.EventType;
+
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
+
+import static com.viewinject.EventType.CLICK;
 
 /**
  * Created by zhangxuehui on 2018/6/13.
@@ -26,14 +30,8 @@ public @interface BindEvent {
      *
      * @return
      */
-    String setMethod() default "setOnClickListener";
+    EventType eventType() default CLICK;
 
-    /**
-     * 设置事件的类型
-     *
-     * @return
-     */
-    Class<?> type() default View.OnClickListener.class;
     /**
      * 回调的方法名称
      *

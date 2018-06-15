@@ -70,6 +70,7 @@ public class EventProxyHandler implements InvocationHandler {
                 }
 
                 try {
+                    method.setAccessible(true);
                     return method.invoke(handler, args);
                 } catch (Throwable ex) {
                     throw new RuntimeException("invoke method error:" +

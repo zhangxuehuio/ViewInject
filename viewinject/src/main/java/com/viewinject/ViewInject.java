@@ -70,6 +70,10 @@ public class ViewInject {
         injectObject(activity, activityClass, new ViewHelper(activity));
     }
 
+    public void inject(Object target, View view) {
+        injectObject(target, target.getClass(), new ViewHelper(view));
+    }
+
     /**
      * fragment中绑定contentVIew
      *
@@ -77,11 +81,8 @@ public class ViewInject {
      * @param inflater
      * @param container
      */
-    public void inject(Object fragment, LayoutInflater inflater, ViewGroup container) {
+    public View inject(Object fragment, LayoutInflater inflater, ViewGroup container) {
         Class<?> fragmentClass = fragment.getClass();
-        if (fragmentClass == null || IGNORED.contains(fragmentClass)) {
-            return;
-        }
         BindContentView contentView = findContentView(fragmentClass);
         View view = null;
         try {
@@ -97,6 +98,7 @@ public class ViewInject {
             LogUtils.e(fragment, ignored.getLocalizedMessage() + "");
         }
         injectObject(fragment, fragmentClass, new ViewHelper(view));
+        return view;
     }
 
     /**
@@ -106,11 +108,11 @@ public class ViewInject {
      */
     public static void injectObject(Object target, Class<?> targetCls, ViewHelper helper) {
         //从父类轮询注解数据
-        LogUtils.e(target, targetCls.getSuperclass().getName());
 
         if (targetCls == null || IGNORED.contains(targetCls)) {
             return;
         }
+        LogUtils.e(target, targetCls.getSuperclass().getName() + "");
         injectObject(target, targetCls.getSuperclass(), helper);
         try {
             Field[] fields = targetCls.getDeclaredFields();
@@ -155,7 +157,6 @@ public class ViewInject {
                 if (onClick != null) {
                     try {
                         int[] resIds = onClick.value();//获取目标控件的id
-                        method.setAccessible(true);
                         for (int resId : resIds) {
                             if (resId > 0) {
                                 View view = helper.findViewById(resId);
@@ -193,5 +194,6 @@ public class ViewInject {
             return contentView;
         }
     }
+
 
 }

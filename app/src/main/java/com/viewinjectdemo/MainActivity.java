@@ -1,13 +1,21 @@
 package com.viewinjectdemo;
 
 import android.app.AlertDialog;
-import android.app.Dialog;
+import android.content.Intent;
+import android.support.v4.app.FragmentManager;
+import android.text.TextWatcher;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.FrameLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.Button;
 
+import com.blankj.utilcode.util.ActivityUtils;
+import com.viewinject.EventType;
 import com.viewinject.annotation.BindContentView;
 import com.viewinject.annotation.BindEvent;
 import com.viewinject.annotation.BindView;
@@ -18,15 +26,23 @@ public class MainActivity extends BaseActivity {
     @BindView(R.id.tv_event_title)
     private TextView tvEventTitle;
     @BindView(R.id.btn_bind_click)
-    private android.widget.Button btnBindClick;
-    @BindView(R.id.btn_bind_touch)
-    private android.widget.Button btnBindTouch;
+    private Button btnBindClick;
+    @BindView(R.id.btn_bind_item_click)
+    private Button btnBindItemClick;
     @BindView(R.id.btn_bind_long_click)
-    private android.widget.Button btnBindLongClick;
+    private Button btnBindLongClick;
+    @BindView(R.id.btn_bind_touch)
+    private TextView btnBindTouch;
+    @BindView(R.id.btn_bind_layout_change)
+    private TextView btnBindLayoutChange;
+    @BindView(R.id.btn_bind_text_watcher)
+    private TextView btnBindTextWatcher;
     @BindView(R.id.tv_view_title)
     private TextView tvViewTitle;
     @BindView(R.id.tv_result)
     private TextView tvResult;
+    @BindView(R.id.fl_content)
+    private FrameLayout flContent;
 
     @Override
     public void bindUI() {
@@ -40,10 +56,9 @@ public class MainActivity extends BaseActivity {
      *
      * @param view
      */
-    @BindEvent({R.id.btn_show_dialog, R.id.btn_show_fragment, R.id.btn_show_list})
+    @BindEvent({R.id.btn_bind_click, R.id.btn_show_dialog, R.id.btn_show_fragment, R.id.btn_show_list})
     void onClick(View view) {
-        Log.e(" invoke aaaa", "aaaaa");
-        Toast.makeText(getApplicationContext(), "aaaaaa", Toast.LENGTH_LONG).show();
+        tvResult.setText("");
         switch (view.getId()) {
             case R.id.btn_bind_click:
                 tvResult.setText("多VIEW公用一个onClick事件");
@@ -53,14 +68,15 @@ public class MainActivity extends BaseActivity {
                 View v = LayoutInflater.from(getApplicationContext()).inflate(R.layout.dialog_test, null);
                 AlertDialog dialog = new AlertDialog.Builder(this)
                         .setView(v)
-                        .setTitle("测试")
-                        .setMessage("测试绑定dialog的点击事件")
                         .create();
                 dialog.show();
                 break;
             case R.id.btn_show_fragment:
+                FragmentManager fm = MainActivity.this.getSupportFragmentManager();
+                fm.beginTransaction().add(R.id.fl_content, BindFragment.newInstance(), "listFragment").commit();
                 break;
             case R.id.btn_show_list:
+                ActivityUtils.startActivity(ListActivity.class);
                 break;
             default:
                 break;
@@ -69,15 +85,32 @@ public class MainActivity extends BaseActivity {
 
     /**
      * 自定义回调事件的方法名
-     *
-     * @param view
      */
-    @BindEvent(R.id.btn_bind_click)
-    void onTestEvent(View view) {
-
+    @BindEvent(value = R.id.btn_bind_touch, eventType = EventType.TOUCH)
+    public boolean onTouch(View v, MotionEvent event) {
+        tvResult.setText("");
+        if (event.getAction() == MotionEvent.ACTION_DOWN) {
+            tvResult.append("你触摸了屏幕[" + event.getX() + "," + event.getY() + "]\n");
+        }
+        if (event.getAction() == MotionEvent.ACTION_UP) {
+            tvResult.append("你从[" + event.getX() + "," + event.getY() + "]抬起了手指\n");
+        }
+        if (event.getAction() == MotionEvent.ACTION_MOVE) {
+            tvResult.append("手指移动到[" + event.getX() + "," + event.getY() + "]\n");
+        }
+        return true;
     }
 
-    private void initView() {
 
+    /**
+     * 自定义回调事件的方法名
+     */
+    @BindEvent(value = R.id.btn_bind_long_click, eventType = EventType.CLICK_LONG)
+    public boolean onLongClick(View v) {
+        tvResult.setText("");
+        tvResult.append("你触发了长按事件\n");
+        return false;
     }
+
+
 }
