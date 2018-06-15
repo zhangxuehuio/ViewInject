@@ -2,8 +2,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     package="com.viewinject">
 
-    <application>
-        <activity android:name="com.viewinjectdemo.ListActivity"></activity>
-    </application>
+
 
 </manifest>
