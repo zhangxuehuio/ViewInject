@@ -31,6 +31,7 @@ public class ListActivity extends BaseActivity {
         list.add("数据：你点击了");
         list.add("数据：你点击了");
         list.add("数据：你点击了");
+
         list.add("数据：你点击了");
         list.add("数据：你点击了");
         list.add("数据：你点击了");
